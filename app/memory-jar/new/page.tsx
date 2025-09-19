@@ -98,21 +98,8 @@ export default function NewMemoryJarNotePage() {
     setIsLoading(true);
 
     try {
-      const createPromise = new Promise((resolve) => {
-        setTimeout(() => resolve("success"), 2000);
-      });
-
-      const deliveryDateFormatted = new Date(formData.deliveryDate).toLocaleDateString();
-      
-      await showLoadingToast(createPromise, {
-        loading: "Sealing your note...",
-        success: `Note scheduled for ${deliveryDateFormatted}! 🎁`,
-        error: "Failed to create note. Please try again."
-      });
-      
-      // Create memory jar note
+      // Create memory jar note via backend
       const newNote = {
-        id: Math.random().toString(36).substr(2, 9),
         title: formData.title.trim(),
         message: formData.message.trim(),
         deliveryDate: formData.deliveryDate,
@@ -123,8 +110,19 @@ export default function NewMemoryJarNotePage() {
         isRead: false
       };
 
-      // In a real app, this would be saved to the backend
-      console.log('New memory jar note created:', newNote);
+      const createPromise = fetch('/api/memoryjar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newNote)
+      });
+
+      const deliveryDateFormatted = new Date(formData.deliveryDate).toLocaleDateString();
+      
+      await showLoadingToast(createPromise, {
+        loading: "Sealing your note...",
+        success: `Note scheduled for ${deliveryDateFormatted}! 🎁`,
+        error: "Failed to create note. Please try again."
+      });
       
       router.push('/memory-jar');
     } catch (error) {

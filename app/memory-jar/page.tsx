@@ -54,58 +54,14 @@ export default function MemoryJarPage() {
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
 
-    // Simulate loading notes
-    setTimeout(() => {
-      const sampleNotes: MemoryJarNote[] = [
-        {
-          id: '1',
-          title: 'Our First Date Memory',
-          message: 'Remember when we got caught in the rain on our first date? You laughed so hard and said it was perfect. I knew then that you were special. ❤️',
-          deliveryDate: '2025-01-15',
-          createdBy: parsedUser.id,
-          createdAt: '2025-01-10T10:00:00Z',
-          isDelivered: true,
-          deliveredAt: '2025-01-15T09:00:00Z',
-          noteType: 'memory',
-          isRead: true
-        },
-        {
-          id: '2',
-          title: 'Future Adventure',
-          message: 'By the time you read this, we should be planning our trip to Japan! I can\'t wait to explore Tokyo with you and try all the amazing food. 🍜✈️',
-          deliveryDate: '2025-03-01',
-          createdBy: parsedUser.id,
-          createdAt: '2025-01-08T15:30:00Z',
-          isDelivered: false,
-          noteType: 'future',
-          isRead: false
-        },
-        {
-          id: '3',
-          title: 'Daily Gratitude',
-          message: 'Thank you for always making me coffee in the morning and for your patience when I\'m grumpy before I\'ve had it. The little things mean everything. ☕💕',
-          deliveryDate: '2025-01-20',
-          createdBy: parsedUser.id,
-          createdAt: '2025-01-12T08:00:00Z',
-          isDelivered: false,
-          noteType: 'gratitude',
-          isRead: false
-        },
-        {
-          id: '4',
-          title: 'Anniversary Surprise',
-          message: 'Happy 6 month anniversary! I\'ve planned something special for us tonight. Check your email for the details. I love you more each day! 🎉💖',
-          deliveryDate: '2025-02-14',
-          createdBy: parsedUser.id,
-          createdAt: '2025-01-05T20:00:00Z',
-          isDelivered: false,
-          noteType: 'surprise',
-          isRead: false
-        }
-      ];
-      setNotes(sampleNotes);
-      setIsLoading(false);
-    }, 1000);
+    // Fetch memory jar notes from backend
+    fetch(`/api/memoryjar?createdBy=${parsedUser.id}`)
+      .then(res => res.json())
+      .then((data: MemoryJarNote[]) => {
+        setNotes(data);
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
   }, [router]);
 
   const getTypeIcon = (type: string) => {
