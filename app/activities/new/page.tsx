@@ -89,19 +89,8 @@ export default function NewActivityPage() {
     setIsLoading(true);
 
     try {
-      const createPromise = new Promise((resolve) => {
-        setTimeout(() => resolve("success"), 1500);
-      });
-
-      await showLoadingToast(createPromise, {
-        loading: "Creating your activity...",
-        success: "Activity created successfully! 🎉",
-        error: "Failed to create activity. Please try again."
-      });
-      
-      // Create activity
+      // Create activity via backend
       const newActivity = {
-        id: Math.random().toString(36).substr(2, 9),
         title: formData.title.trim(),
         description: formData.description.trim(),
         status: 'pending' as const,
@@ -110,8 +99,17 @@ export default function NewActivityPage() {
         createdAt: new Date().toISOString()
       };
 
-      // In a real app, this would be saved to the backend
-      console.log('New activity created:', newActivity);
+      const createPromise = fetch('/api/activities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newActivity)
+      });
+
+      await showLoadingToast(createPromise, {
+        loading: "Creating your activity...",
+        success: "Activity created successfully! 🎉",
+        error: "Failed to create activity. Please try again."
+      });
       
       router.push('/activities');
     } catch (error) {

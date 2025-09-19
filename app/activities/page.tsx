@@ -53,58 +53,14 @@ export default function ActivitiesPage() {
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
 
-    // Simulate loading activities
-    setTimeout(() => {
-      const sampleActivities: Activity[] = [
-        {
-          id: '1',
-          title: 'Weekend Getaway',
-          description: 'Plan a romantic weekend trip to the mountains. Research cozy cabins, hiking trails, and local restaurants.',
-          status: 'pending',
-          dueDate: '2025-02-15',
-          createdBy: parsedUser.id,
-          createdAt: '2025-01-10T10:00:00Z'
-        },
-        {
-          id: '2',
-          title: 'Cooking Class',
-          description: 'Learn to make homemade pasta together. Book a class at the local culinary school.',
-          status: 'in-progress',
-          dueDate: '2025-01-25',
-          createdBy: parsedUser.id,
-          createdAt: '2025-01-08T15:30:00Z'
-        },
-        {
-          id: '3',
-          title: 'Home Movie Night',
-          description: 'Set up a cozy movie night with blankets, popcorn, and our favorite films.',
-          status: 'completed',
-          dueDate: '2025-01-12',
-          createdBy: parsedUser.id,
-          createdAt: '2025-01-05T20:00:00Z'
-        },
-        {
-          id: '4',
-          title: 'Visit Art Museum',
-          description: 'Explore the new exhibition at the modern art museum downtown.',
-          status: 'pending',
-          dueDate: '2025-02-01',
-          createdBy: parsedUser.id,
-          createdAt: '2025-01-11T14:20:00Z'
-        },
-        {
-          id: '5',
-          title: 'Sunrise Hike',
-          description: 'Wake up early to catch the sunrise from the hilltop trail.',
-          status: 'in-progress',
-          dueDate: '2025-01-20',
-          createdBy: parsedUser.id,
-          createdAt: '2025-01-09T08:15:00Z'
-        }
-      ];
-      setActivities(sampleActivities);
-      setIsLoading(false);
-    }, 1000);
+    // Fetch activities from backend
+    fetch(`/api/activities?createdBy=${parsedUser.id}`)
+      .then(res => res.json())
+      .then((data: Activity[]) => {
+        setActivities(data);
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
   }, [router]);
 
   const getStatusIcon = (status: string) => {
