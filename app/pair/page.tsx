@@ -88,20 +88,22 @@ export default function PairPage() {
     setIsLoading(true);
 
     try {
-      const pairPromise = new Promise((resolve, reject) => {
-        setTimeout(() => {
-          // Simulate random success/failure for demo
-          if (Math.random() > 0.3) {
-            resolve("success");
-          } else {
-            reject(new Error("Invalid pairing code"));
-          }
-        }, 2000);
+      // Pair via backend
+      const pairPromise = fetch('/api/pairing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user1: user!.id,
+          user2: pairingCode.toUpperCase(),
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+          relationshipType: relationshipType
+        })
       });
 
       await showLoadingToast(pairPromise, {
         loading: "Connecting with your partner...",
-        success: "Successfully paired! Welcome to your private space! 💕",
+        success: "Successfully paired! Welcome to your private space! ",
         error: "Failed to pair. Please check the code and try again."
       });
       
