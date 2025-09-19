@@ -87,8 +87,20 @@ export default function NewMemoryPage() {
     setIsLoading(true);
 
     try {
-      const createPromise = new Promise((resolve) => {
-        setTimeout(() => resolve("success"), 1500);
+      // Create memory via backend
+      const newMemory = {
+        caption: formData.caption.trim(),
+        imageUrl: formData.imageUrl.trim(),
+        createdBy: user!.id,
+        createdAt: new Date().toISOString(),
+        likes: 0,
+        comments: []
+      };
+
+      const createPromise = fetch('/api/memories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newMemory)
       });
 
       await showLoadingToast(createPromise, {
@@ -96,20 +108,6 @@ export default function NewMemoryPage() {
         success: "Memory added successfully! 📸",
         error: "Failed to add memory. Please try again."
       });
-      
-      // Create memory
-      const newMemory = {
-        id: Math.random().toString(36).substr(2, 9),
-        caption: formData.caption.trim(),
-        imageUrl: formData.imageUrl.trim(),
-        createdBy: user!.id,
-        createdAt: new Date().toISOString(),
-        likes: 0,
-        comments: 0
-      };
-
-      // In a real app, this would be saved to the backend
-      console.log('New memory created:', newMemory);
       
       router.push('/memories');
     } catch (error) {
