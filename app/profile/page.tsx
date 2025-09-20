@@ -102,23 +102,23 @@ export default function ProfilePage() {
     setIsLoading(true);
 
     try {
-      const savePromise = new Promise((resolve) => {
-        setTimeout(() => resolve("success"), 1500);
-      });
-
-      await showLoadingToast(savePromise, {
-        loading: "Saving your profile...",
-        success: "Profile updated successfully! ✨",
-        error: "Failed to update profile. Please try again."
-      });
-      
+      // Save profile via backend
       const updatedUser = {
         ...user!,
         name: formData.name.trim(),
         email: formData.email.trim(),
         interests: formData.interests
       };
-
+      const savePromise = fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedUser)
+      });
+      await showLoadingToast(savePromise, {
+        loading: "Saving your profile...",
+        success: "Profile updated successfully! ✨",
+        error: "Failed to update profile. Please try again."
+      });
       localStorage.setItem('momentmingle_user', JSON.stringify(updatedUser));
       setUser(updatedUser);
       setIsEditing(false);
