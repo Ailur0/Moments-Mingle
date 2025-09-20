@@ -1,6 +1,9 @@
-import express from 'express';
+// For best TypeScript experience, install:
+// npm install --save-dev @types/express @types/body-parser @types/cors
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import { ObjectId } from 'mongodb';
 
 // Import your backend modules
 import * as auth from './auth';
@@ -16,29 +19,197 @@ const PORT = process.env.PORT || 4000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Example routes, you should replace these with real implementations
+// Health check
 app.get('/', (req, res) => {
   res.send('Moments Mingle Backend is running!');
 });
 
-// Example: Auth endpoints
-app.post('/api/signup', (req, res) => {
-  // TODO: Use auth.signup logic
-  res.json({ message: 'Signup endpoint (implement logic)' });
+// AUTH
+app.post('/api/signup', async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    const user = await auth.createUser(email, password, name);
+    res.json(user);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
-app.post('/api/login', (req, res) => {
-  // TODO: Use auth.login logic
-  res.json({ message: 'Login endpoint (implement logic)' });
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await auth.loginUser(email, password);
+    res.json(user);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
-// Example: Memories endpoints
-app.get('/api/memories', (req, res) => {
-  // TODO: Use memories.getMemories logic
-  res.json({ message: 'Get memories endpoint (implement logic)' });
+// MEMORIES
+app.get('/api/memories', async (req, res) => {
+  try {
+    const filter = req.query || {};
+    const memoriesList = await memories.getMemories(filter);
+    res.json(memoriesList);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.post('/api/memories', async (req, res) => {
+  try {
+    const id = await memories.createMemory(req.body);
+    res.json({ insertedId: id });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.put('/api/memories/:id', async (req: Request, res: Response) => {
+  try {
+    const result = await memories.updateMemory(new ObjectId(req.params.id), req.body);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.delete('/api/memories/:id', async (req, res) => {
+  try {
+    const result = await memories.deleteMemory(req.params.id);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Add more endpoints as needed for memoryjar, activities, pairing, profile, etc.
+// MEMORY JARS
+app.get('/api/memoryjars', async (req, res) => {
+  try {
+    const filter = req.query || {};
+    const jars = await memoryjar.getMemoryJars(filter);
+    res.json(jars);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.post('/api/memoryjars', async (req, res) => {
+  try {
+    const id = await memoryjar.createMemoryJar(req.body);
+    res.json({ insertedId: id });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.put('/api/memoryjars/:id', async (req: Request, res: Response) => {
+  try {
+    const result = await memoryjar.updateMemoryJar(new ObjectId(req.params.id), req.body);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.delete('/api/memoryjars/:id', async (req, res) => {
+  try {
+    const result = await memoryjar.deleteMemoryJar(req.params.id);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ACTIVITIES
+app.get('/api/activities', async (req, res) => {
+  try {
+    const filter = req.query || {};
+    const activitiesList = await activities.getActivities(filter);
+    res.json(activitiesList);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.post('/api/activities', async (req, res) => {
+  try {
+    const id = await activities.createActivity(req.body);
+    res.json({ insertedId: id });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.put('/api/activities/:id', async (req: Request, res: Response) => {
+  try {
+    const result = await activities.updateActivity(new ObjectId(req.params.id), req.body);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.delete('/api/activities/:id', async (req, res) => {
+  try {
+    const result = await activities.deleteActivity(req.params.id);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PAIRINGS
+app.get('/api/pairings', async (req, res) => {
+  try {
+    const filter = req.query || {};
+    const pairingsList = await pairing.getPairings(filter);
+    res.json(pairingsList);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.post('/api/pairings', async (req, res) => {
+  try {
+    const id = await pairing.createPairing(req.body);
+    res.json({ insertedId: id });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.put('/api/pairings/:id', async (req, res) => {
+  try {
+    const result = await pairing.updatePairing(req.params.id, req.body);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.delete('/api/pairings/:id', async (req, res) => {
+  try {
+    const result = await pairing.deletePairing(req.params.id);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PROFILES
+app.get('/api/profile/:email', async (req, res) => {
+  try {
+    const profileData = await profile.getUserProfile(req.params.email);
+    res.json(profileData);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.put('/api/profile/:email', async (req, res) => {
+  try {
+    const result = await profile.updateUserProfile(req.params.email, req.body);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.delete('/api/profile/:email', async (req, res) => {
+  try {
+    const result = await profile.deleteUserProfile(req.params.email);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
