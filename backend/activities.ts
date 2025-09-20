@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection } from 'mongodb';
+import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 
 const uri = process.env.MONGODB_URI!;
 
@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export interface Activity {
-  _id?: string;
+  _id?: ObjectId;
   title: string;
   description: string;
   date: string;
@@ -33,7 +33,8 @@ export async function createActivity(activity: Activity) {
   const client = await clientPromise;
   const db: Db = client.db();
   const activities: Collection = db.collection('activities');
-  const doc = { ...activity, createdAt: new Date() };
+  const { _id, ...rest } = activity;
+  const doc = { ...rest, createdAt: new Date() };
   const result = await activities.insertOne(doc);
   return result.insertedId;
 }
@@ -42,14 +43,17 @@ export async function getActivities(filter: Partial<Activity> = {}) {
   const client = await clientPromise;
   const db: Db = client.db();
   const activities: Collection = db.collection('activities');
+  // Convert string _id to ObjectId if present
+  if (filter._id && typeof filter._id === 'string') {
+    (filter as any)._id = new ObjectId(filter._id);
+  }
   return activities.find(filter).toArray();
 }
 
-export async function updateActivity(id: string, update: Partial<Activity>) {
+export async function updateActivity(id: ObjectId, update: Partial<Activity>) {
   const client = await clientPromise;
   const db: Db = client.db();
   const activities: Collection = db.collection('activities');
-  const { ObjectId } = await import('mongodb');
   return activities.updateOne({ _id: new ObjectId(id) }, { $set: update });
 }
 
@@ -57,6 +61,5 @@ export async function deleteActivity(id: string) {
   const client = await clientPromise;
   const db: Db = client.db();
   const activities: Collection = db.collection('activities');
-  const { ObjectId } = await import('mongodb');
   return activities.deleteOne({ _id: new ObjectId(id) });
 }

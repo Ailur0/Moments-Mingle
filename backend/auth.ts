@@ -1,6 +1,6 @@
 // MongoDB-based authentication logic for Moments-Mingle
 import { MongoClient, Db, Collection } from 'mongodb';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 
 const uri = process.env.MONGODB_URI!;
 
