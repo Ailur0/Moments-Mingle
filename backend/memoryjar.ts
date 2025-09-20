@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection } from 'mongodb';
+import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 
 const uri = process.env.MONGODB_URI!;
 
@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export interface MemoryJar {
-  _id?: string;
+  _id?: ObjectId;
   title: string;
   description: string;
   date: string;
@@ -33,7 +33,8 @@ export async function createMemoryJar(memoryJar: MemoryJar) {
   const client = await clientPromise;
   const db: Db = client.db();
   const jars: Collection = db.collection('memory_jars');
-  const doc = { ...memoryJar, createdAt: new Date() };
+  const { _id, ...rest } = memoryJar;
+  const doc = { ...rest, createdAt: new Date() };
   const result = await jars.insertOne(doc);
   return result.insertedId;
 }
@@ -42,14 +43,17 @@ export async function getMemoryJars(filter: Partial<MemoryJar> = {}) {
   const client = await clientPromise;
   const db: Db = client.db();
   const jars: Collection = db.collection('memory_jars');
+  // Convert string _id to ObjectId if present
+  if (filter._id && typeof filter._id === 'string') {
+    (filter as any)._id = new ObjectId(filter._id);
+  }
   return jars.find(filter).toArray();
 }
 
-export async function updateMemoryJar(id: string, update: Partial<MemoryJar>) {
+export async function updateMemoryJar(id: ObjectId, update: Partial<MemoryJar>) {
   const client = await clientPromise;
   const db: Db = client.db();
   const jars: Collection = db.collection('memory_jars');
-  const { ObjectId } = await import('mongodb');
   return jars.updateOne({ _id: new ObjectId(id) }, { $set: update });
 }
 
@@ -57,6 +61,5 @@ export async function deleteMemoryJar(id: string) {
   const client = await clientPromise;
   const db: Db = client.db();
   const jars: Collection = db.collection('memory_jars');
-  const { ObjectId } = await import('mongodb');
   return jars.deleteOne({ _id: new ObjectId(id) });
 }

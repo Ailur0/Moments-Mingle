@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection } from 'mongodb';
+import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 
 const uri = process.env.MONGODB_URI!;
 
@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export interface Memory {
-  _id?: string;
+  _id?: ObjectId;
   title: string;
   description: string;
   date: string;
@@ -33,7 +33,8 @@ export async function createMemory(memory: Memory) {
   const client = await clientPromise;
   const db: Db = client.db();
   const memories: Collection = db.collection('memories');
-  const doc = { ...memory, createdAt: new Date() };
+  const { _id, ...rest } = memory;
+  const doc = { ...rest, createdAt: new Date() };
   const result = await memories.insertOne(doc);
   return result.insertedId;
 }
@@ -42,14 +43,17 @@ export async function getMemories(filter: Partial<Memory> = {}) {
   const client = await clientPromise;
   const db: Db = client.db();
   const memories: Collection = db.collection('memories');
+  // Convert string _id to ObjectId if present
+  if (filter._id && typeof filter._id === 'string') {
+    (filter as any)._id = new ObjectId(filter._id);
+  }
   return memories.find(filter).toArray();
 }
 
-export async function updateMemory(id: string, update: Partial<Memory>) {
+export async function updateMemory(id: ObjectId, update: Partial<Memory>) {
   const client = await clientPromise;
   const db: Db = client.db();
   const memories: Collection = db.collection('memories');
-  const { ObjectId } = await import('mongodb');
   return memories.updateOne({ _id: new ObjectId(id) }, { $set: update });
 }
 
@@ -57,6 +61,5 @@ export async function deleteMemory(id: string) {
   const client = await clientPromise;
   const db: Db = client.db();
   const memories: Collection = db.collection('memories');
-  const { ObjectId } = await import('mongodb');
   return memories.deleteOne({ _id: new ObjectId(id) });
 }
