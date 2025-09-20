@@ -1,3 +1,5 @@
+// Load environment variables from .env.local (requires 'dotenv' package)
+try { require('dotenv').config({ path: '.env.local' }); } catch {}
 // For best TypeScript experience, install:
 // npm install --save-dev @types/express @types/body-parser @types/cors
 import express, { Request, Response } from 'express';
