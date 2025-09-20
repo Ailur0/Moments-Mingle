@@ -114,6 +114,190 @@ export default function SignUpPage() {
     }
   };
 
+  // Steps for progressive signup
+  const steps = [
+    {
+      id: 'name',
+      label: 'Full Name',
+      type: 'text',
+      placeholder: 'Your name',
+      required: true,
+      render: () => (
+        <FormInput
+          id="name"
+          label="Full Name"
+          type="text"
+          placeholder="Your name"
+          value={formData.name}
+          onChange={(e) => {
+            setFormData(prev => ({ ...prev, name: e.target.value }));
+            if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+          }}
+          error={errors.name}
+          required
+        />
+      ),
+    },
+    {
+      id: 'email',
+      label: 'Email',
+      type: 'email',
+      placeholder: 'your@email.com',
+      required: true,
+      render: () => (
+        <FormInput
+          id="email"
+          label="Email"
+          type="email"
+          placeholder="your@email.com"
+          value={formData.email}
+          onChange={(e) => {
+            setFormData(prev => ({ ...prev, email: e.target.value }));
+            if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+          }}
+          error={errors.email}
+          required
+        />
+      ),
+    },
+    {
+      id: 'password',
+      label: 'Password',
+      type: 'password',
+      placeholder: 'Create a secure password',
+      required: true,
+      render: () => (
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Create a secure password"
+              value={formData.password}
+              onChange={(e) => {
+                setFormData(prev => ({ ...prev, password: e.target.value }));
+                if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
+              }}
+              className={errors.password ? "border-destructive focus-visible:ring-destructive" : ""}
+              required
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              )}
+            </Button>
+          </div>
+          {errors.password && (
+            <div className="flex items-center space-x-1 text-destructive">
+              <AlertCircle className="h-3 w-3" />
+              <p className="text-xs">{errors.password}</p>
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'confirmPassword',
+      label: 'Confirm Password',
+      type: 'password',
+      placeholder: 'Confirm your password',
+      required: true,
+      render: () => (
+        <FormInput
+          id="confirmPassword"
+          label="Confirm Password"
+          type="password"
+          placeholder="Confirm your password"
+          value={formData.confirmPassword}
+          onChange={(e) => {
+            setFormData(prev => ({ ...prev, confirmPassword: e.target.value }));
+            if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: '' }));
+          }}
+          error={errors.confirmPassword}
+          success={
+            formData.confirmPassword && 
+            formData.password === formData.confirmPassword && 
+            !errors.confirmPassword ? "Passwords match" : undefined
+          }
+          required
+        />
+      ),
+    },
+    {
+      id: 'interests',
+      label: 'Your Interests',
+      type: 'multi',
+      required: false,
+      render: () => (
+        <div className="space-y-2">
+          <Label>Your Interests</Label>
+          <p className="text-sm text-muted-foreground mb-3">
+            Select activities and topics you enjoy (this helps us suggest better activities)
+          </p>
+          <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+            {availableInterests.map((interest) => (
+              <button
+                key={interest}
+                type="button"
+                onClick={() => toggleInterest(interest)}
+                className={`text-sm px-3 py-2 rounded-full border transition-all ${
+                  formData.interests.includes(interest)
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background border-border hover:border-primary/50'
+                }`}
+              >
+                {interest}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Selected: {formData.interests.length} interests
+          </p>
+        </div>
+      ),
+    },
+  ];
+
+  const [step, setStep] = useState(0);
+  const currentStep = steps[step];
+
+  const handleNext = () => {
+    if (step < steps.length - 1) {
+      setStep(step + 1);
+    }
+  };
+  const handleBack = () => {
+    if (step > 0) {
+      setStep(step - 1);
+    }
+  };
+  const handleSkip = () => {
+    if (currentStep.id === 'interests') {
+      setFormData(prev => ({ ...prev, interests: [] }));
+    } else {
+      setFormData(prev => ({ ...prev, [currentStep.id]: '' }));
+    }
+    handleNext();
+  };
+
+  const handleStepSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (step < steps.length - 1) {
+      handleNext();
+    } else {
+      await handleSubmit(e);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <motion.div
@@ -134,134 +318,43 @@ export default function SignUpPage() {
           <h1 className="text-3xl font-bold mb-2">Create Your Account</h1>
           <p className="text-muted-foreground">Start your journey of meaningful connections</p>
         </div>
-
         <Card className="romantic-bg border-0 shadow-xl">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">Sign Up</CardTitle>
             <CardDescription className="text-center">
-              Enter your details to create your private space
+              Step {step + 1} of {steps.length}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <FormInput
-                id="name"
-                label="Full Name"
-                type="text"
-                placeholder="Your name"
-                value={formData.name}
-                onChange={(e) => {
-                  setFormData(prev => ({ ...prev, name: e.target.value }));
-                  if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
-                }}
-                error={errors.name}
-                required
-              />
-              
-              <FormInput
-                id="email"
-                label="Email"
-                type="email"
-                placeholder="your@email.com"
-                value={formData.email}
-                onChange={(e) => {
-                  setFormData(prev => ({ ...prev, email: e.target.value }));
-                  if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
-                }}
-                error={errors.email}
-                required
-              />
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Create a secure password"
-                    value={formData.password}
-                    onChange={(e) => {
-                      setFormData(prev => ({ ...prev, password: e.target.value }));
-                      if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
-                    }}
-                    className={errors.password ? "border-destructive focus-visible:ring-destructive" : ""}
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
+            <form onSubmit={handleStepSubmit} className="space-y-4">
+              {currentStep.render()}
+              <div className="flex justify-between mt-6">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleBack}
+                  disabled={step === 0}
+                >
+                  Back
+                </Button>
+                {step < steps.length - 1 && (
+                  <Button type="button" variant="outline" onClick={handleSkip}>
+                    Skip
                   </Button>
-                </div>
-                {errors.password && (
-                  <div className="flex items-center space-x-1 text-destructive">
-                    <AlertCircle className="h-3 w-3" />
-                    <p className="text-xs">{errors.password}</p>
-                  </div>
                 )}
+                <EnhancedButton
+                  type="submit"
+                  loading={isLoading && step === steps.length - 1}
+                  loadingText="Creating account..."
+                  className="ml-auto"
+                >
+                  {step === steps.length - 1 ? 'Create Account' : 'Next'}
+                </EnhancedButton>
               </div>
-              
-              <FormInput
-                id="confirmPassword"
-                label="Confirm Password"
-                type="password"
-                placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={(e) => {
-                  setFormData(prev => ({ ...prev, confirmPassword: e.target.value }));
-                  if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: '' }));
-                }}
-                error={errors.confirmPassword}
-                success={
-                  formData.confirmPassword && 
-                  formData.password === formData.confirmPassword && 
-                  !errors.confirmPassword ? "Passwords match" : undefined
-                }
-                required
-              />
-              
-              <div className="space-y-2">
-                <Label>Your Interests</Label>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Select activities and topics you enjoy (this helps us suggest better activities)
-                </p>
-                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                  {availableInterests.map((interest) => (
-                    <button
-                      key={interest}
-                      type="button"
-                      onClick={() => toggleInterest(interest)}
-                      className={`text-sm px-3 py-2 rounded-full border transition-all ${
-                        formData.interests.includes(interest)
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'bg-background border-border hover:border-primary/50'
-                      }`}
-                    >
-                      {interest}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Selected: {formData.interests.length} interests
-                </p>
-              </div>
-              
-              <EnhancedButton type="submit" className="w-full" loading={isLoading} loadingText="Creating account...">
-                Create Account
-              </EnhancedButton>
             </form>
-            
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Already have an account?{" "}
+                Already have an account?{' '}
                 <Link href="/auth/login" className="text-primary hover:underline">
                   Sign in
                 </Link>
