@@ -8,6 +8,9 @@ import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { ObjectId } from 'mongodb';
+// For logging, install:
+// npm install morgan
+
 
 // Import your backend modules
 import * as auth from './auth';
@@ -22,6 +25,9 @@ import { authenticateToken, generateToken } from './authMiddleware';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+import morgan from 'morgan';
+
+app.use(morgan('dev'));
 app.use(cors());
 app.use(bodyParser.json());
 
