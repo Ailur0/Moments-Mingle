@@ -82,37 +82,47 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      const signupPromise = new Promise((resolve) => {
-        setTimeout(() => resolve("success"), 2000);
+      const signupPromise = fetch("http://localhost:4000/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password
+        })
+      }).then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error ? (Array.isArray(err.error) ? err.error[0].message : err.error) : "Signup failed");
+        }
+        return res.json();
       });
 
-      await showLoadingToast(signupPromise, {
+      const data = await showLoadingToast(signupPromise, {
         loading: "Creating your account...",
         success: "Welcome to MomentMingle! 🎉",
         error: "Failed to create account. Please try again."
       });
-      
-      // Create user profile
-      const user = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: formData.name,
-        email: formData.email,
-        pairingCode: Math.random().toString(36).substr(2, 6).toUpperCase(),
-        pairedWith: null,
-        createdAt: new Date().toISOString(),
-        interests: formData.interests
-      };
 
-      // Store in localStorage (in real app, this would be handled by backend)
-      localStorage.setItem('momentmingle_user', JSON.stringify(user));
-      
+      // Store user and token if returned
+      if (data.user && data.token) {
+        localStorage.setItem('momentmingle_user', JSON.stringify(data.user));
+        localStorage.setItem('momentmingle_token', data.token);
+      } else {
+        // Fallback for old backend response
+        localStorage.setItem('momentmingle_user', JSON.stringify(data));
+      }
+
       router.push('/dashboard');
-    } catch (error) {
-      // Error already handled by showLoadingToast
+    } catch (error: any) {
+      showErrorToast(error.message || "Signup failed");
     } finally {
       setIsLoading(false);
     }
   };
+
 
   // Steps for progressive signup
   const steps = [
