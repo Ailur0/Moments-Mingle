@@ -2,6 +2,8 @@
 try { require('dotenv').config({ path: '.env.local' }); } catch {}
 // For best TypeScript experience, install:
 // npm install --save-dev @types/express @types/body-parser @types/cors
+// For request validation, install:
+// npm install zod
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -14,6 +16,7 @@ import * as memoryjar from './memoryjar';
 import * as activities from './activities';
 import * as pairing from './pairing';
 import * as profile from './profile';
+import { signupSchema, loginSchema } from './validation';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -27,9 +30,13 @@ app.get('/', (req, res) => {
 });
 
 // AUTH
-app.post('/api/signup', async (req, res) => {
+app.post('/api/signup', async (req: Request, res: Response) => {
   try {
-    const { email, password, name } = req.body;
+    const parseResult = signupSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ error: parseResult.error.issues });
+    }
+    const { email, password, name } = parseResult.data;
     const user = await auth.createUser(email, password, name);
     res.json(user);
   } catch (err: any) {
@@ -37,15 +44,21 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const parseResult = loginSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ error: parseResult.error.issues });
+    }
+    const { email, password } = parseResult.data;
     const user = await auth.loginUser(email, password);
     res.json(user);
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }
 });
+
+// Add zod validation for other endpoints as needed, using the schemas in validation.ts
 
 // MEMORIES
 app.get('/api/memories', async (req, res) => {
