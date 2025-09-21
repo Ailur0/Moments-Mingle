@@ -265,6 +265,10 @@ app.delete('/api/profile/:email', authenticateToken, async (req, res) => {
   }
 });
 
+import { errorHandler } from './errorHandler';
+
+app.use(errorHandler);
+
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
 });
