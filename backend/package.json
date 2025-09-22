@@ -9,10 +9,12 @@
     "dev": "nodemon --watch './' --exec ts-node server.ts"
   },
   "dependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
     "zod": "^4.1.11"
   },
   "devDependencies": {
