@@ -1,6 +1,6 @@
 // Example test for the signup endpoint using supertest and jest
 import request from 'supertest';
-import app from './server';
+import { app } from './server';
 
 describe('POST /api/signup', () => {
   it('should return 200 and a user object for valid input', async () => {

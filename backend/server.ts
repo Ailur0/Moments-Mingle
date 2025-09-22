@@ -22,7 +22,7 @@ import * as profile from './profile';
 import { signupSchema, loginSchema, memorySchema, memoryJarSchema, activitySchema, pairingSchema, profileUpdateSchema } from './validation';
 import { authenticateToken, generateToken } from './authMiddleware';
 
-const app = express();
+export const app = express();
 const PORT = process.env.PORT || 4000;
 
 import morgan from 'morgan';
