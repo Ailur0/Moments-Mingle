@@ -20,18 +20,20 @@ if (process.env.NODE_ENV === 'development') {
   clientPromise = client.connect();
 }
 
+import { ObjectId } from 'mongodb';
+
 export interface Pairing {
-  _id?: string;
+  _id?: ObjectId;
   user1: string; // userId or email
   user2: string; // userId or email
   status: string; // e.g., 'pending', 'accepted', 'rejected'
   createdAt?: Date;
 }
 
-export async function createPairing(pairing: Pairing) {
+export async function createPairing(pairing: Omit<Pairing, '_id'>) {
   const client = await clientPromise;
   const db: Db = client.db();
-  const pairings: Collection = db.collection('pairings');
+  const pairings: Collection<Pairing> = db.collection('pairings');
   const doc = { ...pairing, createdAt: new Date() };
   const result = await pairings.insertOne(doc);
   return result.insertedId;
@@ -40,8 +42,13 @@ export async function createPairing(pairing: Pairing) {
 export async function getPairings(filter: Partial<Pairing> = {}) {
   const client = await clientPromise;
   const db: Db = client.db();
-  const pairings: Collection = db.collection('pairings');
-  return pairings.find(filter).toArray();
+  const pairings: Collection<Pairing> = db.collection('pairings');
+  // Convert string _id in filter to ObjectId if present
+  const mongoFilter: any = { ...filter };
+  if (mongoFilter._id && typeof mongoFilter._id === 'string') {
+    mongoFilter._id = new ObjectId(mongoFilter._id);
+  }
+  return pairings.find(mongoFilter).toArray();
 }
 
 export async function updatePairing(id: string, update: Partial<Pairing>) {
