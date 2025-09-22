@@ -107,9 +107,9 @@ export default function SignUpPage() {
       });
 
       // Store user and token if returned
-      if (data.user && data.token) {
-        localStorage.setItem('momentmingle_user', JSON.stringify(data.user));
-        localStorage.setItem('momentmingle_token', data.token);
+      if (typeof data === 'object' && data !== null && 'user' in data && 'token' in data) {
+        localStorage.setItem('momentmingle_user', JSON.stringify((data as any).user));
+        localStorage.setItem('momentmingle_token', (data as any).token);
       } else {
         // Fallback for old backend response
         localStorage.setItem('momentmingle_user', JSON.stringify(data));
